@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
+using TMPro;
+
 
 public class MainManager : MonoBehaviour
 {
@@ -11,6 +14,8 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text bestScoreText;
+    public GameObject nameText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -18,14 +23,18 @@ public class MainManager : MonoBehaviour
     
     private bool m_GameOver = false;
 
-    
+
     // Start is called before the first frame update
     void Start()
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
+        nameText.GetComponent<TextMeshProUGUI>().text = GameManager.instance.playerName;
+        if (GameManager.instance.bestPlayer == null) GameManager.instance.bestPlayer = new GameManager.Player("null", 0);
+        bestScoreText.text = "Best Score: " + GameManager.instance.bestPlayer.playerScore + " Name: " + GameManager.instance.bestPlayer.playerName;
+
         int[] pointCountArray = new [] {1,1,2,2,5,5};
+
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -58,19 +67,31 @@ public class MainManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
             }
         }
+        bestScoreText.text = "Best Score: " + GameManager.instance.bestPlayer.playerScore + " Name: " + GameManager.instance.bestPlayer.playerName;
     }
 
     void AddPoint(int point)
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+
+        if (GameManager.instance.bestPlayer.playerScore < m_Points)
+        {
+            GameManager.instance.bestPlayer.playerName = GameManager.instance.playerName;
+            GameManager.instance.bestPlayer.playerScore = m_Points;
+        }
+
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+        GameManager.instance.Save();
     }
+
 }
